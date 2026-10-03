@@ -133,7 +133,7 @@ public:
     world(const std::string &name = "");/*DEFAULT*/
     ~world();
 
-    bool exists(const std::string& name);
+    static bool exists(const std::string& name);
 
     template<typename T>
     void mysql_insert(const std::string& column, const T& value);
