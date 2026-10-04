@@ -9,6 +9,7 @@ void action::store(ENetEvent& event, const std::string& header)
 
     if (header.empty() || pipes[3] == "gem") // @note location|gem
     {
+        send_varlist(event.peer, { "OnSetVouchers", 0 }); // @note otherwise the client shows a random Grow Voucher balance
         send_varlist(event.peer, {
             "OnStoreRequest",
             std::format(
