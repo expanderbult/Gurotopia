@@ -187,12 +187,17 @@ void tile_change(ENetEvent& event, ::gamePacket gamePacket)
                 }
                 case type::WEATHER_MACHINE:
                 {
-                    ::block &weather_machine = world->blocks[cord(world->weather.x, world->weather.y)];
-
-                    if (!(block.state[2] & S_TOGGLE) && !(weather_machine.state[2] & S_TOGGLE)) weather_machine.state[2] &= ~S_TOGGLE; // @note so we can avoid the upcoming ^= if the weather machine is already toggled
                     block.state[2] ^= S_TOGGLE; // @note if punched twice it can detoggle that is why we use ^= not |=
-                    
-                    world->weather = gamePacket.punch;
+                    if (block.state[2] & S_TOGGLE) // @note only one weather machine can be on: turn off the one that was on before
+                    {
+                        ::block &before = world->blocks[cord(world->weather.x, world->weather.y)];
+                        if (world->weather != gamePacket.punch && (before.state[2] & S_TOGGLE) && id_to_item(before.fg).type == type::WEATHER_MACHINE)
+                        {
+                            before.state[2] &= ~S_TOGGLE;
+                            send_tile_update(event, ::gamePacket{ .id = before.fg, .punch = world->weather }, before, *world);
+                        }
+                        world->weather = gamePacket.punch;
+                    }
                     
                     peers(pPeer->recent_worlds.back(), PEER_SAME_WORLD, [block, item](ENetPeer& p)
                     {

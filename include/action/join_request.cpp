@@ -96,6 +96,17 @@ void action::join_request(ENetEvent& event, const std::string& header, const std
         ++world.visitors;
         on::SetClothing(*event.peer);
         on::CountryState(event);
+
+        for (int i = 0; i < static_cast<int>(world.blocks.size()); ++i) // @note a weather machine that is on stays on after re-entering
+        {
+            const ::block &block = world.blocks[i];
+            if ((block.state[2] & S_TOGGLE) && id_to_item(block.fg).type == type::WEATHER_MACHINE)
+            {
+                world.weather = ::pos{ i % 100, i / 100 }; // @note so punching it again turns it off
+                send_varlist(event.peer, { "OnSetCurrentWeather", get_weather_id(block.fg) });
+                break;
+            }
+        }
     }
     catch (const std::exception& exc)
     {
